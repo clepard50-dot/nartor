@@ -135,14 +135,15 @@ function App() {
           {/* Settings Button */}
           <button
             onClick={() => setShowApiKeyModal(true)}
-            className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
+            className={`px-4 py-2 rounded-xl flex items-center gap-2 transition-all font-medium text-sm ${
               hasCustomKey 
-                ? 'bg-green-50 text-green-600 hover:bg-green-100 border border-green-200' 
-                : 'bg-white/50 text-slate-500 hover:bg-white hover:text-indigo-600 border border-white/50'
+                ? 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 shadow-sm' 
+                : 'bg-white/70 text-slate-600 hover:bg-white hover:text-indigo-600 border border-slate-200 shadow-sm'
             }`}
             title={hasCustomKey ? 'Using custom API key' : 'API Settings'}
           >
-            <i className="fa-solid fa-key text-sm"></i>
+            <i className="fa-solid fa-key"></i>
+            <span>{hasCustomKey ? 'Custom Key' : 'API Key'}</span>
           </button>
         </div>
       </nav>
