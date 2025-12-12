@@ -1,16 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileUpload } from './components/FileUpload';
 import { ControlPanel } from './components/ControlPanel';
 import { AudioResult } from './components/AudioResult';
 import { loadPDF, extractTextFromPages } from './services/pdfUtils';
-import { generateSpeechFromText } from './services/gemini';
+import { generateSpeechFromText, getCustomApiKey, setCustomApiKey } from './services/gemini';
 import { PDFData, VoiceName, ProcessingStatus } from './types';
 
 type AppView = 'upload' | 'config' | 'result';
 
 function App() {
   const [view, setView] = useState<AppView>('upload');
-  
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+  const [apiKeyInput, setApiKeyInput] = useState('');
+  const [hasCustomKey, setHasCustomKey] = useState(false);
+
+  useEffect(() => {
+    const customKey = getCustomApiKey();
+    setApiKeyInput(customKey);
+    setHasCustomKey(!!customKey);
+  }, []);
+
+  const handleSaveApiKey = () => {
+    setCustomApiKey(apiKeyInput);
+    setHasCustomKey(!!apiKeyInput.trim());
+    setShowApiKeyModal(false);
+  };
+
+  const handleClearApiKey = () => {
+    setApiKeyInput('');
+    setCustomApiKey('');
+    setHasCustomKey(false);
+  };
+
   // Data State
   const [pdfData, setPdfData] = useState<PDFData | null>(null);
   const [pdfDoc, setPdfDoc] = useState<any>(null);
@@ -110,8 +131,67 @@ function App() {
               <span className="text-sm font-medium text-slate-700 truncate max-w-[150px]">{pdfData.name}</span>
             </div>
           )}
+
+          {/* Settings Button */}
+          <button
+            onClick={() => setShowApiKeyModal(true)}
+            className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
+              hasCustomKey 
+                ? 'bg-green-50 text-green-600 hover:bg-green-100 border border-green-200' 
+                : 'bg-white/50 text-slate-500 hover:bg-white hover:text-indigo-600 border border-white/50'
+            }`}
+            title={hasCustomKey ? 'Using custom API key' : 'API Settings'}
+          >
+            <i className="fa-solid fa-key text-sm"></i>
+          </button>
         </div>
       </nav>
+
+      {/* API Key Modal */}
+      {showApiKeyModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setShowApiKeyModal(false)}></div>
+          <div className="relative bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md border border-white/50 animate-fade-in">
+            <h3 className="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
+              <i className="fa-solid fa-key text-indigo-500"></i>
+              API Key Settings
+            </h3>
+            <p className="text-sm text-slate-500 mb-4">
+              Optionally use your own Gemini API key. Leave empty to use the default.
+            </p>
+            <input
+              type="password"
+              value={apiKeyInput}
+              onChange={(e) => setApiKeyInput(e.target.value)}
+              placeholder="Enter your Gemini API key..."
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none transition-all text-sm"
+            />
+            <div className="flex gap-2 mt-4">
+              {hasCustomKey && (
+                <button
+                  onClick={handleClearApiKey}
+                  className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                >
+                  Clear
+                </button>
+              )}
+              <div className="flex-1"></div>
+              <button
+                onClick={() => setShowApiKeyModal(false)}
+                className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveApiKey}
+                className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <main className="pt-32 pb-20 px-6 max-w-5xl mx-auto">
         

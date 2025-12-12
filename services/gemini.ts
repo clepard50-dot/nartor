@@ -1,10 +1,31 @@
 import { GoogleGenAI, Modality } from "@google/genai";
 import { VoiceName } from "../types";
 
-// Access API_KEY from Vite environment variables
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
+// Default API_KEY from Vite environment variables
+const DEFAULT_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 
-const ai = new GoogleGenAI({ apiKey: API_KEY });
+// Custom API key storage (localStorage)
+const CUSTOM_KEY_STORAGE = 'narrator_custom_api_key';
+
+export const getCustomApiKey = (): string => {
+  return localStorage.getItem(CUSTOM_KEY_STORAGE) || '';
+};
+
+export const setCustomApiKey = (key: string): void => {
+  if (key.trim()) {
+    localStorage.setItem(CUSTOM_KEY_STORAGE, key.trim());
+  } else {
+    localStorage.removeItem(CUSTOM_KEY_STORAGE);
+  }
+};
+
+const getApiKey = (): string => {
+  return getCustomApiKey() || DEFAULT_API_KEY;
+};
+
+const getAiClient = () => {
+  return new GoogleGenAI({ apiKey: getApiKey() });
+};
 
 /**
  * Helper to construct a WAV header for the raw PCM data.
@@ -58,9 +79,12 @@ export const generateSpeechFromText = async (
     throw new Error("No text provided for generation.");
   }
 
-  if (!API_KEY) {
-    throw new Error("API Key is missing. Please ensure process.env.API_KEY is set.");
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    throw new Error("API Key is missing. Please add your Gemini API key in settings.");
   }
+
+  const ai = getAiClient();
 
   // Construct a robust prompt. We move instructions into the text to ensure the model adheres to them.
   const promptText = `
