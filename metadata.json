@@ -1,0 +1,5 @@
+{
+  "name": "NarrateAI - PDF to Audiobook",
+  "description": "Convert PDF documents into professional-sounding audiobooks using Gemini's advanced text-to-speech narration.",
+  "requestFramePermissions": []
+}
